@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Demostración Digital Interactiva del MUA</title>
+  <style>
+    /* =========================
+       ESTILO GENERAL
+    ==========================*/
+    :root {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: #ffffff; /* Fondo general blanco */
+      color: #111111;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 20px auto;
+      padding: 20px;
+    }
+
+    h1, h2, h3 {
+      margin: 0 0 10px 0;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      border: 1px solid #dddddd;
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 18px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+      background: #ffffff;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 0.9rem;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 8px;
+      box-sizing: border-box;
+      border-radius: 4px;
+      border: 1px solid #cccccc;
+      font-size: 0.95rem;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit,minmax(180px,1fr));
+      gap: 12px 20px;
+      margin-bottom: 12px;
+    }
+
+    button {
+      padding: 10px 20px;
+      border-radius: 20px;
+      border: 1px solid #111111;
+      background: #111111;
+      color: #ffffff;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.1s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+      background: #000000;
+    }
+
+    .messages {
+      margin-top: 8px;
+      font-size: 0.9rem;
+      min-height: 1.2em;
+    }
+
+    .error {
+      color: #b00020;
+    }
+
+    .success {
+      color: #0a7a2f;
+    }
+
+    /* =========================
+       GRÁFICAS (CANVAS)
+    ==========================*/
+    .graphs-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px;
+    }
+
+    .graph-block h3 {
+      margin-bottom: 6px;
+      font-size: 1rem;
+    }
+
+    canvas {
+      width: 100%;
+      height: 280px;
+      border-radius: 6px;
+      display: block;
+      background: #000000; /* Fondo negro obligatorio para las gráficas */
+    }
+
+    /* =========================
+       CARRITO ANIMADO
+    ==========================*/
+    .track-container {
+      margin-top: 10px;
+      border-radius: 8px;
+      border: 1px solid #dddddd;
+      padding: 12px;
+    }
+
+    .track-label {
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+    }
+
+    .track {
+      position: relative;
+      height: 80px;
+      border-radius: 40px;
+      border: 1px solid #cccccc;
+      overflow: hidden;
+      background: #f7f7f7;
+    }
+
+    .track-line {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: #999999;
+      transform: translateY(-50%);
+    }
+
+    .cart {
+      position: absolute;
+      bottom: 18px;
+      width: 60px;
+      height: 26px;
+      border-radius: 6px;
+      background: #111111;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-size: 0.75rem;
+    }
+
+    .wheel {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #222222;
+      bottom: -6px;
+    }
+
+    .wheel.left {
+      left: 10px;
+    }
+
+    .wheel.right {
+      right: 10px;
+    }
+
+    .cart::after {
+      /* “Techo” del carrito */
+      content: "";
+      position: absolute;
+      top: -10px;
+      left: 8px;
+      width: 44px;
+      height: 12px;
+      border-radius: 6px 6px 0 0;
+      border: 1px solid #111111;
+      background: #ffffff;
+    }
+
+    .info-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 8px;
+      font-size: 0.9rem;
+    }
+
+    .info-box {
+      flex: 1 1 220px;
+      border-radius: 6px;
+      border: 1px solid #e0e0e0;
+      padding: 8px 10px;
+      background: #fafafa;
+    }
+
+    .small {
+      font-size: 0.85rem;
+    }
+
+    /* =========================
+       BOTÓN CIRCULAR EQUIPO
+    ==========================*/
+    .team-fab {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: #111111;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.35);
+      z-index: 999;
+    }
+
+    .team-fab:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+    }
+
+    .fab-cart-icon {
+      position: relative;
+      width: 32px;
+      height: 20px;
+      border-radius: 4px;
+      background: #ffffff;
+      box-sizing: border-box;
+    }
+
+    .fab-cart-icon::before {
+      /* techo inclinado del carrito */
+      content: "";
+      position: absolute;
+      top: -8px;
+      left: 6px;
+      width: 20px;
+      height: 10px;
+      border-radius: 4px 4px 0 0;
+      border: 2px solid #ffffff;
+      border-bottom: none;
+    }
+
+    .fab-cart-icon::after {
+      /* línea que simula una fuerza o vector (detalle “física”) */
+      content: "";
+      position: absolute;
+      top: 4px;
+      right: -6px;
+      width: 10px;
+      height: 2px;
+      background: #ffffff;
+      transform: rotate(-20deg);
+      transform-origin: left center;
+    }
+
+    .fab-wheel {
+      position: absolute;
+      bottom: -7px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #ffffff;
+    }
+
+    .fab-wheel.left {
+      left: 4px;
+    }
+
+    .fab-wheel.right {
+      right: 4px;
+    }
+
+    .team-panel {
+      position: fixed;
+      right: 20px;
+      bottom: 100px;
+      max-width: 240px;
+      background: #ffffff;
+      border-radius: 8px;
+      border: 1px solid #dddddd;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.20);
+      padding: 10px 12px;
+      font-size: 0.85rem;
+      z-index: 998;
+      display: none;
+    }
+
+    .team-panel.visible {
+      display: block;
+    }
+
+    .team-panel-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .team-panel-sub {
+      font-size: 0.8rem;
+      margin-bottom: 6px;
+      color: #555555;
+    }
+
+    .team-panel ul {
+      list-style: none;
+      padding-left: 0;
+      margin: 4px 0 0 0;
+    }
+
+    .team-panel li::before {
+      content: "• ";
+      color: #111111;
+    }
+
+    .team-panel li {
+      margin-bottom: 2px;
+    }
+
+    /* =========================
+       ACORDEONES EXPLICATIVOS
+    ==========================*/
+    .info-accordion {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .info-item {
+      border-radius: 8px;
+      border: 1px solid #dddddd;
+      background: #fafafa;
+      overflow: hidden;
+    }
+
+    .info-header {
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .info-header-title {
+      font-weight: 600;
+    }
+
+    .info-icon {
+      font-size: 1rem;
+      transition: transform 0.2s ease;
+    }
+
+    .info-body {
+      padding: 8px 12px 10px;
+      border-top: 1px solid #e0e0e0;
+      font-size: 0.86rem;
+      display: none;
+    }
+
+    .info-item.open .info-body {
+      display: block;
+    }
+
+    .info-item.open .info-icon {
+      transform: rotate(90deg);
+    }
+
+    .info-body ul {
+      margin: 4px 0 0 16px;
+      padding-left: 0;
+    }
+
+    .info-body li {
+      margin-bottom: 3px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Demostración Digital Interactiva del Movimiento Uniformemente Acelerado (MUA)</h1>
+
+    <!-- =========================
+         FORMULARIO DE ENTRADA
+    ==========================-->
+    <div class="card">
+      <h2>Parámetros del movimiento</h2>
+      <p class="small">
+        Este proyecto corresponde a una <strong>demostración digital interactiva</strong> del MUA.  
+        Más adelante se complementará con un <strong>montaje físico real</strong> usando los mismos principios.
+      </p>
+      <p class="small">
+        Ingresa los valores del movimiento. Acepta valores positivos y negativos para <strong>v₀</strong> y <strong>a</strong>. El tiempo debe ser mayor que cero.
+      </p>
+      <div class="form-row">
+        <div>
+          <label for="v0">Velocidad inicial v₀ (m/s)</label>
+          <input id="v0" type="number" step="any" placeholder="Ej: 2.0">
+        </div>
+        <div>
+          <label for="a">Aceleración a (m/s²)</label>
+          <input id="a" type="number" step="any" placeholder="Ej: 1.5">
+        </div>
+        <div>
+          <label for="t">Tiempo total t (s)</label>
+          <input id="t" type="number" step="any" placeholder="Ej: 4.0">
+        </div>
+        <div>
+          <label for="xEsperada">Distancia esperada (m) (opcional)</label>
+          <input id="xEsperada" type="number" step="any" placeholder="Ej: 16.0">
+        </div>
+      </div>
+      <button id="btnSimular">Simular MUA</button>
+      <div id="msg" class="messages"></div>
+
+      <div class="info-row">
+        <div class="info-box">
+          <strong>Ecuación usada:</strong><br>
+          x(t) = v₀·t + ½·a·t²
+        </div>
+        <div class="info-box">
+          <strong>Recordatorio:</strong><br>
+          a &gt; 0 → aceleración hacia adelante<br>
+          a &lt; 0 → frenado o retroceso.
+        </div>
+      </div>
+    </div>
+
+    <!-- =========================
+         GRÁFICAS
+    ==========================-->
+    <div class="card">
+      <h2>Visualización científica: posición vs tiempo</h2>
+      <div class="graphs-container">
+        <div class="graph-block">
+          <h3>Gráfica A · Aceleración positiva (vista estándar)</h3>
+          <canvas id="canvasPositivo" width="500" height="280"></canvas>
+        </div>
+        <div class="graph-block">
+          <h3>Gráfica B · Aceleración negativa / retroceso</h3>
+          <canvas id="canvasNegativo" width="500" height="280"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========================
+         CARRITO ANIMADO
+    ==========================-->
+    <div class="card">
+      <h2>Animación del carrito</h2>
+      <p class="small">
+        El carrito se mueve de acuerdo a la ecuación del MUA. Si los valores hacen que el movimiento vaya hacia la izquierda, el carrito se desplazará en ese sentido.
+      </p>
+      <div class="track-container">
+        <div class="track-label">Representación del desplazamiento: x(t) = v₀·t + ½·a·t²</div>
+        <div class="track" id="track">
+          <div class="track-line"></div>
+          <div class="cart" id="cart">
+            <span>Carro</span>
+            <div class="wheel left"></div>
+            <div class="wheel right"></div>
+          </div>
+        </div>
+      </div>
+      <div class="info-row">
+        <div class="info-box small" id="infoFinal"></div>
+        <div class="info-box small" id="infoComparacion"></div>
+      </div>
+    </div>
+
+    <!-- =========================
+         ACORDEONES EXPLICATIVOS
+    ==========================-->
+    <div class="card">
+      <h2>Explicación del proyecto (modo exposición)</h2>
+      <p class="small">
+        Usa estos recuadros desplegables para explicar el porqué del carrito, la demostración digital y cómo se haría el montaje físico en persona.
+      </p>
+      <div class="info-accordion">
+
+        <!-- ¿Por qué el carrito? -->
+        <div class="info-item">
+          <div class="info-header">
+            <div class="info-header-title">¿Por qué usamos un carrito en la simulación?</div>
+            <div class="info-icon">▶</div>
+          </div>
+          <div class="info-body">
+            <p>
+              El carrito representa un <strong>móvil real</strong> moviéndose en una sola dimensión sobre una pista.  
+              Es una forma sencilla de visualizar lo que, en realidad, está describiendo la ecuación:
+              <em>x(t) = v₀·t + ½·a·t²</em>.
+            </p>
+            <p>
+              Con el carrito es fácil hablar de:
+            </p>
+            <ul>
+              <li><strong>Velocidad inicial (v₀):</strong> qué tan rápido arranca el carro al inicio.</li>
+              <li><strong>Aceleración (a):</strong> si “siente” empuje hacia adelante (a &gt; 0) o frenado/retroceso (a &lt; 0).</li>
+              <li><strong>Sentido del movimiento:</strong> hacia la derecha (positivo) o hacia la izquierda (negativo).</li>
+              <li><strong>Posición:</strong> dónde está el carro en cada instante de tiempo.</li>
+            </ul>
+            <p>
+              En resumen, el carrito hace que una ecuación abstracta se convierta en algo que el público puede “ver” moviéndose.
+            </p>
+          </div>
+        </div>
+
+        <!-- ¿Para qué sirve la demo digital? -->
+        <div class="info-item">
+          <div class="info-header">
+            <div class="info-header-title">¿Para qué sirve esta demostración digital?</div>
+            <div class="info-icon">▶</div>
+          </div>
+          <div class="info-body">
+            <p>
+              La demostración digital sirve como un <strong>laboratorio virtual</strong> para preparar y entender el Movimiento Uniformemente Acelerado antes del experimento físico.
+            </p>
+            <ul>
+              <li><strong>Visualizar:</strong> ver la curva de posición vs tiempo con estilo de gráfica de laboratorio.</li>
+              <li><strong>Probar parámetros:</strong> cambiar v₀, a y t y ver cómo cambia el movimiento sin gastar materiales.</li>
+              <li><strong>Validar cálculos:</strong> comparar la distancia teórica con una distancia esperada y revisar el error.</li>
+              <li><strong>Explicar al público:</strong> usar las gráficas y el carrito para explicar el concepto de aceleración constante.</li>
+            </ul>
+            <p>
+              Luego, estos mismos parámetros se pueden usar en el montaje físico para comparar <strong>teoría vs realidad</strong>.
+            </p>
+          </div>
+        </div>
+
+        <!-- Cómo se haría en persona -->
+        <div class="info-item">
+          <div class="info-header">
+            <div class="info-header-title">¿Cómo se haría el experimento en persona?</div>
+            <div class="info-icon">▶</div>
+          </div>
+          <div class="info-body">
+            <p>
+              En la presentación física, la idea es replicar el comportamiento del carrito digital con un <strong>carrito real</strong> y medir su movimiento.
+            </p>
+            <p>
+              La secuencia típica sería:
+            </p>
+            <ul>
+              <li>Colocar el carrito sobre una pista o rampa ligeramente inclinada.</li>
+              <li>Definir un origen de posición (x = 0) y marcar varias posiciones sobre la pista.</li>
+              <li>Soltar el carrito (o empujarlo suavemente) para generar una velocidad inicial v₀.</li>
+              <li>Medir el tiempo que tarda en pasar por ciertas marcas usando un cronómetro.</li>
+              <li>Registrar los datos de <em>tiempo</em> y <em>posición</em>.</li>
+              <li>Comparar esos datos con la curva que genera la simulación usando los mismos valores aproximados de v₀ y a.</li>
+            </ul>
+            <p>
+              De esta forma se muestra que el modelo matemático del MUA <strong>predice bastante bien</strong> el movimiento real, con pequeñas diferencias por rozamiento y errores de medición.
+            </p>
+          </div>
+        </div>
+
+        <!-- Materiales -->
+        <div class="info-item">
+          <div class="info-header">
+            <div class="info-header-title">Materiales sugeridos para el montaje físico</div>
+            <div class="info-icon">▶</div>
+          </div>
+          <div class="info-body">
+            <p>
+              Para el montaje físico que acompaña a esta demostración digital se podrían usar materiales simples:
+            </p>
+            <ul>
+              <li>1 carrito pequeño (de juguete o de laboratorio).</li>
+              <li>1 pista recta o rampa (tabla lisa, riel metálico o de plástico).</li>
+              <li>Cinta métrica o regla larga para medir distancias.</li>
+              <li>Cinta adhesiva para marcar posiciones sobre la pista (x = 0, x₁, x₂, ...).</li>
+              <li>Cronómetro (puede ser el del celular) para medir tiempos.</li>
+              <li>Soporte o libros para dar una inclinación fija a la rampa si se quiere un movimiento acelerado por gravedad.</li>
+              <li>Hoja de registro o tabla para anotar posición, tiempo y observaciones.</li>
+            </ul>
+            <p>
+              La idea es que el montaje físico sea <strong>simple, estable y seguro</strong>, y que se pueda repetir varias veces para comparar resultados.
+            </p>
+          </div>
+        </div>
+
+        <!-- Cómo funciona la página -->
+        <div class="info-item">
+          <div class="info-header">
+            <div class="info-header-title">¿Cómo funciona esta página paso a paso?</div>
+            <div class="info-icon">▶</div>
+          </div>
+          <div class="info-body">
+            <p>
+              La página integra <strong>HTML, CSS y JavaScript</strong> en un solo archivo para mostrar todo el proyecto de manera limpia.
+            </p>
+            <ul>
+              <li><strong>1. Datos de entrada:</strong> el usuario ingresa v₀, a, t y, si quiere, una distancia esperada.</li>
+              <li><strong>2. Validación:</strong> el JavaScript verifica que no falten datos, que sean números y que el tiempo sea mayor que cero.</li>
+              <li><strong>3. Cálculo:</strong> se generan muchos puntos de tiempo y, para cada uno, se calcula x(t) con la fórmula del MUA.</li>
+              <li><strong>4. Gráficas:</strong> se dibujan dos gráficas con fondo negro:
+                <ul>
+                  <li>Gráfica A: vista estándar, enfatiza posiciones positivas.</li>
+                  <li>Gráfica B: vista general, muestra también valores negativos de posición.</li>
+                </ul>
+              </li>
+              <li><strong>5. Animación:</strong> el carrito se mueve en la pista usando las mismas posiciones calculadas, mapeadas a pixeles.</li>
+              <li><strong>6. Comparación:</strong> si el usuario ingresó una distancia esperada, el sistema calcula el error relativo y muestra si es coherente con la teoría.</li>
+            </ul>
+            <p>
+              Todo esto se ejecuta directamente en el navegador, sin conexión a internet y sin instalar nada extra.
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================
+       BOTÓN FLOTANTE EQUIPO
+  ==========================-->
+  <div class="team-fab" id="teamFab" title="Equipo de trabajo · MUA">
+    <div class="fab-cart-icon">
+      <div class="fab-wheel left"></div>
+      <div class="fab-wheel right"></div>
+    </div>
+  </div>
+
+  <div class="team-panel" id="teamPanel">
+    <div class="team-panel-title">Equipo de trabajo</div>
+    <div class="team-panel-sub">Demostración Digital del Movimiento Uniformemente Acelerado</div>
+    <ul>
+      <li>Yelsi</li>
+      <li>Juan Camilo</li>
+      <li>Camilo</li>
+      <li>Jacobo</li>
+      <li>Felipe</li>
+      <li>Antonio</li>
+    </ul>
+  </div>
+
+  <script>
+    // =============================
+    //  UTILIDADES MATEMÁTICAS
+    // =============================
+    function generarDatosMUA(v0, a, tTotal, pasos) {
+      const dt = tTotal / pasos;
+      const tiempos = [];
+      const posiciones = [];
+      let minX = Infinity;
+      let maxX = -Infinity;
+
+      for (let i = 0; i <= pasos; i++) {
+        const t = dt * i;
+        const x = v0 * t + 0.5 * a * t * t;
+        tiempos.push(t);
+        posiciones.push(x);
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+      }
+
+      return { tiempos, posiciones, minX, maxX };
+    }
+
+    // Mapeo de valor real a coordenadas de canvas
+    function mapRange(value, inMin, inMax, outMin, outMax) {
+      if (inMax === inMin) {
+        // Evitar división por cero: rango degenerado
+        return (outMin + outMax) / 2;
+      }
+      return outMin + (value - inMin) * (outMax - outMin) / (inMax - inMin);
+    }
+
+    // =============================
+    //  DIBUJO DE GRÁFICAS
+    // =============================
+    function dibujarGrafica(canvas, datos, opciones) {
+      const ctx = canvas.getContext("2d");
+      const w = canvas.width;
+      const h = canvas.height;
+      const padding = 45;
+
+      const { tiempos, posiciones } = datos;
+      const tMin = 0;
+      const tMax = tiempos[tiempos.length - 1];
+
+      // Rango vertical según opciones
+      let xMin = opciones.yMin;
+      let xMax = opciones.yMax;
+
+      if (xMax === xMin) {
+        xMax = xMin + 1;
+      }
+
+      // Fondo negro
+      ctx.fillStyle = "#000000";
+      ctx.fillRect(0, 0, w, h);
+
+      ctx.save();
+      ctx.translate(0.5, 0.5); // suavizar líneas
+
+      // Ejes en blanco
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 1;
+
+      // Eje X (tiempo)
+      const x0 = padding;
+      const y0 = h - padding;
+      ctx.beginPath();
+      ctx.moveTo(x0, y0);
+      ctx.lineTo(w - padding, y0);
+      ctx.stroke();
+
+      // Eje Y (posición)
+      ctx.beginPath();
+      ctx.moveTo(x0, h - padding);
+      ctx.lineTo(x0, padding);
+      ctx.stroke();
+
+      ctx.font = "11px system-ui";
+      ctx.fillStyle = "#ffffff";
+
+      // Etiquetas de ejes
+      ctx.fillText("Tiempo (s)", (w - padding + x0) / 2 - 30, h - 10);
+      ctx.save();
+      ctx.translate(12, (h - padding + padding) / 2 + 15);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText("Posición (m)", 0, 0);
+      ctx.restore();
+
+      // Ticks en eje X
+      const ticksX = 5;
+      for (let i = 0; i <= ticksX; i++) {
+        const t = tMin + (tMax - tMin) * i / ticksX;
+        const cx = mapRange(t, tMin, tMax, x0, w - padding);
+        ctx.beginPath();
+        ctx.moveTo(cx, y0);
+        ctx.lineTo(cx, y0 + 5);
+        ctx.stroke();
+        ctx.fillText(t.toFixed(1), cx - 8, y0 + 17);
+      }
+
+      // Ticks en eje Y
+      const ticksY = 5;
+      for (let i = 0; i <= ticksY; i++) {
+        const xVal = xMin + (xMax - xMin) * i / ticksY;
+        const cy = mapRange(xVal, xMin, xMax, h - padding, padding);
+        ctx.beginPath();
+        ctx.moveTo(x0, cy);
+        ctx.lineTo(x0 - 5, cy);
+        ctx.stroke();
+        ctx.fillText(xVal.toFixed(1), 5, cy + 3);
+      }
+
+      // Curva suave
+      ctx.beginPath();
+      for (let i = 0; i < tiempos.length; i++) {
+        const t = tiempos[i];
+        const xVal = posiciones[i];
+        const cx = mapRange(t, tMin, tMax, x0, w - padding);
+        const cy = mapRange(xVal, xMin, xMax, h - padding, padding);
+        if (i === 0) {
+          ctx.moveTo(cx, cy);
+        } else {
+          ctx.lineTo(cx, cy);
+        }
+      }
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Puntos blancos
+      for (let i = 0; i < tiempos.length; i++) {
+        const t = tiempos[i];
+        const xVal = posiciones[i];
+        const cx = mapRange(t, tMin, tMax, x0, w - padding);
+        const cy = mapRange(xVal, xMin, xMax, h - padding, padding);
+        ctx.beginPath();
+        ctx.arc(cx, cy, 2, 0, Math.PI * 2);
+        ctx.fillStyle = "#ffffff";
+        ctx.fill();
+      }
+
+      // Datos dentro de la gráfica
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "11px system-ui";
+      const infoLines = opciones.infoLines || [];
+      let textY = padding + 14;
+      infoLines.forEach(linea => {
+        ctx.fillText(linea, x0 + 6, textY);
+        textY += 12;
+      });
+
+      ctx.restore();
+    }
+
+    // =============================
+    //  ANIMACIÓN DEL CARRITO
+    // =============================
+    let animId = null;
+
+    function animarCarrito(v0, a, tTotal, minPos, maxPos) {
+      const cart = document.getElementById("cart");
+      const track = document.getElementById("track");
+      const trackWidth = track.clientWidth;
+      const cartWidth = cart.clientWidth;
+
+      if (animId !== null) {
+        cancelAnimationFrame(animId);
+        animId = null;
+      }
+
+      // Caso degenerado (sin desplazamiento)
+      if (maxPos === minPos) {
+        const center = (trackWidth - cartWidth) / 2;
+        cart.style.left = center + "px";
+        return;
+      }
+
+      const startTime = performance.now();
+      const durAnimMs = 4000; // duración visual de la animación
+
+      function step(now) {
+        const elapsed = now - startTime;
+        let alpha = elapsed / durAnimMs;
+        if (alpha > 1) alpha = 1;
+
+        // Tiempo simulado proporcional
+        const t = tTotal * alpha;
+        const x = v0 * t + 0.5 * a * t * t;
+
+        // Mapeo posición real -> posición en la pista
+        const px = mapRange(x, minPos, maxPos, 40, trackWidth - 40 - cartWidth);
+
+        cart.style.left = px + "px";
+
+        if (alpha < 1) {
+          animId = requestAnimationFrame(step);
+        } else {
+          animId = null;
+        }
+      }
+
+      animId = requestAnimationFrame(step);
+    }
+
+    // =============================
+    //  LÓGICA PRINCIPAL
+    // =============================
+    document.getElementById("btnSimular").addEventListener("click", () => {
+      const v0Input = document.getElementById("v0");
+      const aInput = document.getElementById("a");
+      const tInput = document.getElementById("t");
+      const xEInput = document.getElementById("xEsperada");
+      const msg = document.getElementById("msg");
+      const infoFinal = document.getElementById("infoFinal");
+      const infoComparacion = document.getElementById("infoComparacion");
+
+      msg.textContent = "";
+      msg.className = "messages";
+      infoFinal.textContent = "";
+      infoComparacion.textContent = "";
+
+      const v0Str = v0Input.value.trim();
+      const aStr = aInput.value.trim();
+      const tStr = tInput.value.trim();
+      const xEStr = xEInput.value.trim();
+
+      // Validación de vacíos
+      if (!v0Str || !aStr || !tStr) {
+        msg.textContent = "Por favor, completa al menos: v₀, a y t. La distancia esperada es opcional.";
+        msg.classList.add("error");
+        return;
+      }
+
+      const v0 = parseFloat(v0Str);
+      const a = parseFloat(aStr);
+      const tTotal = parseFloat(tStr);
+
+      if (Number.isNaN(v0) || Number.isNaN(a) || Number.isNaN(tTotal)) {
+        msg.textContent = "Todos los parámetros deben ser números válidos.";
+        msg.classList.add("error");
+        return;
+      }
+
+      if (tTotal <= 0) {
+        msg.textContent = "El tiempo total debe ser mayor que cero.";
+        msg.classList.add("error");
+        return;
+      }
+
+      let xEsperada = null;
+      if (xEStr) {
+        const xE = parseFloat(xEStr);
+        if (Number.isNaN(xE)) {
+          msg.textContent = "La distancia esperada, si se ingresa, debe ser un número válido.";
+          msg.classList.add("error");
+          return;
+        } else {
+          xEsperada = xE;
+        }
+      }
+
+      // Generar datos
+      const pasos = 40;
+      const datos = generarDatosMUA(v0, a, tTotal, pasos);
+      const { minX, maxX, posiciones } = datos;
+
+      // Rango para la animación
+      const minPos = Math.min(0, minX);
+      const maxPos = Math.max(0, maxX);
+
+      // DIBUJAR GRÁFICA A (vista estándar, énfasis en parte positiva)
+      const canvasPos = document.getElementById("canvasPositivo");
+      const yMinA = 0;
+      const yMaxA = maxPos === 0 ? 1 : maxPos;
+
+      dibujarGrafica(canvasPos, datos, {
+        yMin: yMinA,
+        yMax: yMaxA,
+        infoLines: [
+          `v₀ = ${v0.toFixed(2)} m/s`,
+          `a = ${a.toFixed(2)} m/s²`,
+          `tₘₐₓ = ${tTotal.toFixed(2)} s`
+        ]
+      });
+
+      // DIBUJAR GRÁFICA B (vista simétrica, admite negativos)
+      const canvasNeg = document.getElementById("canvasNegativo");
+      let yMinB = minPos;
+      let yMaxB = maxPos;
+      if (yMaxB === yMinB) {
+        yMaxB = yMinB + 1;
+      }
+
+      dibujarGrafica(canvasNeg, datos, {
+        yMin: yMinB,
+        yMax: yMaxB,
+        infoLines: [
+          `Caso general (pos. + neg.)`,
+          `min(x) = ${minX.toFixed(2)} m`,
+          `max(x) = ${maxX.toFixed(2)} m`
+        ]
+      });
+
+      // ANIMAR CARRITO
+      animarCarrito(v0, a, tTotal, minPos, maxPos);
+
+      // Cálculo de posición final
+      const xFinal = posiciones[posiciones.length - 1];
+      infoFinal.textContent =
+        `Posición final teórica (x₍final₎) = ${xFinal.toFixed(4)} m ` +
+        `para t = ${tTotal.toFixed(2)} s.`;
+
+      // Comparación con distancia esperada
+      if (xEsperada !== null) {
+        const diff = xFinal - xEsperada;
+        const relError = xEsperada !== 0 ? Math.abs(diff / xEsperada) : Math.abs(diff);
+        const tol = 0.05; // 5%
+
+        if (relError <= tol) {
+          infoComparacion.textContent =
+            `La distancia esperada (${xEsperada.toFixed(4)} m) ` +
+            `es coherente con el valor teórico. (Error relativo ≈ ${(relError*100).toFixed(2)}%).`;
+          infoComparacion.className = "info-box small success";
+        } else {
+          infoComparacion.textContent =
+            `La distancia esperada (${xEsperada.toFixed(4)} m) ` +
+            `no coincide con el valor teórico (${xFinal.toFixed(4)} m). ` +
+            `Diferencia = ${diff.toFixed(4)} m (Error relativo ≈ ${(relError*100).toFixed(2)}%).`;
+          infoComparacion.className = "info-box small error";
+        }
+      } else {
+        infoComparacion.textContent = "No se ingresó distancia esperada. El sistema solo muestra el valor teórico final.";
+        infoComparacion.className = "info-box small";
+      }
+
+      msg.textContent = "Simulación realizada correctamente. Revisa las gráficas y la animación del carrito.";
+      msg.classList.add("success");
+    });
+
+    // Dibujar fondo negro inicial en las gráficas
+    window.addEventListener("load", () => {
+      const canvasPos = document.getElementById("canvasPositivo");
+      const ctxP = canvasPos.getContext("2d");
+      ctxP.fillStyle = "#000000";
+      ctxP.fillRect(0, 0, canvasPos.width, canvasPos.height);
+
+      const canvasNeg = document.getElementById("canvasNegativo");
+      const ctxN = canvasNeg.getContext("2d");
+      ctxN.fillStyle = "#000000";
+      ctxN.fillRect(0, 0, canvasNeg.width, canvasNeg.height);
+    });
+
+    // =============================
+    //  BOTÓN EQUIPO (FAB)
+    // =============================
+    const teamFab = document.getElementById("teamFab");
+    const teamPanel = document.getElementById("teamPanel");
+
+    teamFab.addEventListener("click", () => {
+      teamPanel.classList.toggle("visible");
+    });
+
+    // Cerrar panel si se hace click fuera
+    document.addEventListener("click", (e) => {
+      if (!teamPanel.contains(e.target) && !teamFab.contains(e.target)) {
+        teamPanel.classList.remove("visible");
+      }
+    });
+
+    // =============================
+    //  ACORDEONES EXPLICATIVOS
+    // =============================
+    const infoItems = document.querySelectorAll(".info-item");
+
+    infoItems.forEach(item => {
+      const header = item.querySelector(".info-header");
+      header.addEventListener("click", () => {
+        item.classList.toggle("open");
+      });
+    });
+  </script>
+</body>
+</html>
